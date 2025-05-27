@@ -1,0 +1,253 @@
+---
+title: "Final Project 3.1 & 3.2"
+author: "Blake Kancigor"
+date: "2025-05-25"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#clearall
+rm(list=ls()) 
+```
+
+```{r, echo=FALSE}
+market_data <- read.csv("airline_data_marketlevel.csv")
+firm_data <- read.csv("airline_data_firmlevel.csv")
+routes_data <- read.csv("db1bmarket.csv")
+```
+
+# 3. Merger analysis 2: IPPS and CEs
+
+
+## 3.1 Estimate marginal costs and markups
+
+
+### Question 1
+
+Use your logit demand estimates from DC3. Compute the marginal cost of each airline company using
+these demand estimates and assuming Nash-Bertrand pricing.
+
+```{r, message=FALSE, warning=FALSE}
+library(dplyr)
+library(knitr)
+library(tidyverse)
+```
+
+```{r}
+#logit demand estimates from DC3 for log_price using  fuel price as an instrument = -1.3318
+alpha <- -1.3318
+
+firm_data$markup <- firm_data$ms_reg / (abs(alpha) * (1 - firm_data$ms_reg))
+firm_data$price <- firm_data$rev / firm_data$passengers
+firm_data$mc <- firm_data$price - firm_data$markup
+average_mc <- mean(firm_data$mc, na.rm = TRUE)
+
+average_mc_by_carrier <- firm_data %>%
+  group_by(carrier_name) %>%
+  summarise(average_mc = mean(mc, na.rm = TRUE)) %>%
+  arrange(average_mc)
+
+hawaiian_mc <- filter(average_mc_by_carrier, grepl("Hawaiian", carrier_name, ignore.case = TRUE))
+alaskan_mc <- filter(average_mc_by_carrier, grepl("Alaska Airlines", carrier_name, ignore.case = TRUE))
+
+cat("Hawaiian Airlines Average Marginal Cost:", round(hawaiian_mc$average_mc, 4), "\n")
+cat("Hawaiian Airlines Average Marginal Cost ($):", round(hawaiian_mc$average_mc * 1000, 2), "\n")
+cat("Alaska Airlines Average Marginal Cost:", round(alaskan_mc$average_mc, 4), "\n\n")
+cat("Alaska Airlines Average Marginal Cost ($):", round(alaskan_mc$average_mc * 1000, 2), "\n\n")
+
+kable(average_mc_by_carrier, digits = 4, caption = "Average Marginal Cost by Airline")
+
+other_carriers_mc <- average_mc_by_carrier %>%
+  filter(!grepl("Hawaiian|Alaska Airlines", carrier_name, ignore.case = TRUE))
+
+average_mcs_of_others <- mean(other_carriers_mc$average_mc, na.rm = TRUE)
+
+cat("\nAverage Marginal Cost of All Other Airlines:", round(average_mcs_of_others, 4), "\n")
+cat("\nAverage Marginal Cost of All Other Airlines ($):", round(average_mcs_of_others * 1000, 2), "\n")
+
+```
+
+
+
+### Question 2
+
+How do Hawaiian and Alaskan Airlines compare in terms of marginal costs (on average) to the other airline companies? How do Hawaiian and Alaskan compare in terms of marginal costs? Does this give them a rationale to merge, or not?
+
+\textcolor{blue}{Based on the above marginal cost estimates, Alaska Airlines has a higher average marginal cost (159.62 dollars) than Hawaiian Airlines (105.10 dollars), but both are well below the airline industry average of 582.10 dollars across all other carriers. Although we should note that the average of "all other airlines" is probably inflated by skewed data that includes a long tail of smaller, less efificent airline carriers with unusually high costs. If we wanted to focus on only major competitors, the industry average would probably be closer to Hawaiian and Alaska's averages.}
+
+\textcolor{blue}{The difference in costs between Alaska and Hawaiian might be a result of a few different factors including network structure and plane fleet efficiency. But, since they both are much lower than the industry average, it means they are both pretty efficient airlines. This might mean that if they merged, it could have operational synergies especially if Alaska's larger scale and greater routes could help optimize Hawaiian's operations since they're more isolated.}
+
+\textcolor{blue}{Overall, the cost comparison does provide some economic justification for a merger. If the two airlines were able to successfully merge and integrate together, it could lower Hawaiian's marginal cost further, which would help the combined airline company compete more with other airlines. This would allow them to also hopefully pass on some of those savings to consumers, lowering ticket fares.}
+
+
+
+### Question 3
+
+Make an assumption about the change in marginal costs at both firms. Some examples could be:
+– The post-merger marginal costs are the average of the pre-merger marginal costs at both firms
+– The post-merger marginal costs are the minimum of the pre-merger marginal costs at both firms
+– The post-merger marginal costs are the maximum of the pre-merger marginal costs at both firms
+– Unchanged marginal costs
+– Marginal costs move to average of larger competitors
+– Etc...
+
+\textcolor{blue}{We are going to assume that the post-merger marginal cost for the combined company is roughly the average of their pre-merger marginal costs. While not perfect, it is a conservative and reasonable middle-ground assumption. We think that it might be around there because there will be some operational efficiencies that will be realized through integration (shared infrastructure and workforce, improved aircraft utilization, centralized maintenance, etc.), but not so quickly or perfectly to fully bring one airlines's cost structure down to the other's. We think this allows us to account for the effects of partial cost synergies while not being too optimistic or pessimistic in projections.}
+
+
+
+### Question 4
+
+Motivate your choice of marginal cost changes. Why do you think this is a reasonable assumption?
+
+\textcolor{blue}{As explained in question 3, we chose to model the post-merger marginal cost as the average of Hawaiian and Alaska's pre-merger marginal costs. We believe that it is reasonable to expect that the merged company would definitely realize some operational efficiencies, but not enough so to align one carrier's costs with the other and drastically change the structure in a short amount of time.}
+
+\textcolor{blue}{Alaska's network and operations are definitely more scalable and are focused on the US mainland, while Hawaiian's cost base is probably higher because it's hub is in Hawaii and is thus more constrained. There are also more limited competitive pressures and higher fixed costs per route for Hawaiian. We think that some amount of cost-sharing is likely especially when it comes to fleet maintenance, scheduling, contracts with manufacturers/other suppliers, and other integrated areas in the post-merger company.}
+
+
+
+### Question 5
+
+Compute the post-merger marginal cost for both airline companies under your assumed marginal cost
+change.
+
+```{r}
+post_merger_mc <- mean(c(hawaiian_mc$average_mc, alaskan_mc$average_mc))
+
+cat("Post-merger Marginal Cost ($):", round(post_merger_mc * 1000, 2), "\n")
+```
+
+\textcolor{blue}{Based on the assumption that the merged company's marginal costs would be the average of the pre-merger costs, we calculate a post-merger marginal cost of 132.36 dollars. This reflects that middle between Hawaiian's relatively lower costs and Alaska's slightly higher ones, accounting for us expecting moderate efficiency gains without assuming perfect and full integration success in the short-term.}
+
+
+
+### Question 6
+
+Estimate the Lerner index based on your demand estimates
+
+```{r}
+firm_data <- firm_data %>%
+  mutate(
+    price = rev / passengers,
+    marginal_cost = (pfuel + materials) / passengers,
+    markup = price - marginal_cost,
+    lerner_index = markup / price
+  )
+
+avg_lerner <- mean(firm_data$lerner_index, na.rm = TRUE)
+med_lerner <- median(firm_data$lerner_index, na.rm = TRUE)
+
+cat("Average Lerner Index:", round(avg_lerner, 3), "\n")
+cat("Median Lerner Index:", round(med_lerner, 3), "\n")
+```
+```{r}
+firm_data
+```
+
+
+\textcolor{blue}{Using our demand elasticity estimate of -1.3318 and the Nash-Bertrand pricing model, we calculated the Lerner Index for all airline data. The average and median Lerner Index are both 0.429, which means that airlines charge prices that are roughly 43 percent higher than their marginal cost.}
+
+\textcolor{blue}{This menas that airlines definitely maintain a good degree of market power, even in such a competitive industry and market. Being able to keep decent markups of this magnitude probably comes from factors like route dominance, loyalty programs, and offering product differentiation (flight times, amenities, direct routes, etc).}
+
+```{r}
+#3.2 Setup
+library(tidyverse)
+yr_max <- max(firm_data$year, na.rm=TRUE)
+firm_latest <- filter(firm_data, year == yr_max)
+
+L_vals <- firm_data %>%
+  filter(carrier_name %in% c("Hawaiian Airlines Inc.","Alaska Airlines Inc.")) %>%
+  group_by(carrier_name) %>%
+  summarise(L = mean(lerner_index, na.rm=TRUE)) %>%
+  pivot_wider(names_from = carrier_name,
+              values_from = L)
+
+L_HA <- L_vals$`Hawaiian Airlines Inc.`
+L_AS <- L_vals$`Alaska Airlines Inc.`
+L_vals
+```
+
+```{r}
+db1b <- read_csv("db1bmarket.csv") %>% filter(year == 2024)
+
+# diversion ratio for HA and AS
+diversion <- db1b %>%
+  filter(rpcarrier %in% c("HA","AS")) %>%
+  group_by(mktid, rpcarrier) %>%
+  summarise(share = sum(ms), .groups="drop") %>%
+  pivot_wider(
+    names_from  = rpcarrier,
+    values_from = share,
+    values_fill = 0
+  ) %>%
+  mutate(
+    D_HA_to_AS = AS / (1 - HA),
+    D_AS_to_HA = HA / (1 - AS)
+  ) %>%
+  left_join(
+    db1b %>% select(mktid, price = mktfare) %>% distinct(),
+    by = "mktid"
+  )
+
+diversion_summary <- diversion %>%
+  summarise(
+    avg_D_HA_to_AS = mean(D_HA_to_AS, na.rm = TRUE),
+    avg_D_AS_to_HA = mean(D_AS_to_HA, na.rm = TRUE),
+    med_D_HA_to_AS = median(D_HA_to_AS, na.rm = TRUE),
+    med_D_AS_to_HA = median(D_AS_to_HA, na.rm = TRUE)
+  )
+
+cat("Average diversion from Hawaiian to Alaska:", round(diversion_summary$avg_D_HA_to_AS, 3), "\n")
+cat("Average diversion from Alaska to Hawaiian:", round(diversion_summary$avg_D_AS_to_HA, 3), "\n")
+cat("Median diversion from Hawaiian to Alaska:", round(diversion_summary$med_D_HA_to_AS, 3), "\n")
+cat("Median diversion from Alaska to Hawaiian:", round(diversion_summary$med_D_AS_to_HA, 3), "\n")
+```
+
+```{r}
+# Compute price rise
+diversion <- diversion %>%
+  mutate(
+    # absolute $ rise
+    uplift_HA     = D_HA_to_AS * L_AS * price,
+    uplift_AS     = D_AS_to_HA * L_HA * price,
+    # percentage rise
+    uplift_pct_HA = D_HA_to_AS * L_AS * 100,
+    uplift_pct_AS = D_AS_to_HA * L_HA * 100
+  )
+diversion_prices <- diversion %>%
+  select(mktid, price, D_HA_to_AS, uplift_HA, uplift_pct_HA) %>%
+  arrange(desc(uplift_pct_HA)) %>%
+  slice_head(n = 10)
+
+cat("\nTop 10 markets by predicted price rise for Hawaiian:\n")
+print(diversion_prices)
+```
+
+```{r}
+# Summaries for Hawaiian’s price rise
+summary_HA <- diversion %>%
+  summarise(
+    avg_upt_dollar = mean(uplift_HA,      na.rm = TRUE),
+    med_upt_dollar = median(uplift_HA,    na.rm = TRUE),
+    max_upt_dollar = max(uplift_HA,       na.rm = TRUE),
+    min_upt_dollar = min(uplift_HA,       na.rm = TRUE),
+    avg_upt_pct    = mean(uplift_pct_HA,  na.rm = TRUE),
+    med_upt_pct    = median(uplift_pct_HA,na.rm = TRUE),
+    max_upt_pct    = max(uplift_pct_HA,   na.rm = TRUE),
+    min_upt_pct    = min(uplift_pct_HA,   na.rm = TRUE)
+  )
+print(summary_HA)
+```
+
+```{r}
+# Average CE
+CE_HA <- diversion %>%
+  summarise(
+    avg_CE_pct = mean(uplift_pct_HA, na.rm=TRUE)
+  )
+print(CE_HA)
+```
+
