@@ -38,7 +38,7 @@ library(tidyverse)
 ```
 
 ```{r}
-#logit demand estimates from DC3 for log_price using  fuel price as an instrument = -1.3318
+#logit demand estimates from DC3 for log_price using  fuel price as an instrument = -1.98
 alpha <- -1.98
 
 firm_data$markup <- firm_data$ms_reg / (abs(alpha) * (1 - firm_data$ms_reg))
