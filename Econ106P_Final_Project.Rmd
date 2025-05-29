@@ -120,7 +120,7 @@ post_merger_mc <- mean(c(hawaiian_mc$average_mc, alaskan_mc$average_mc))
 cat("Post-merger Marginal Cost ($):", round(post_merger_mc * 1000, 2), "\n")
 ```
 
-\textcolor{blue}{Based on the assumption that the merged company's marginal costs would be the average of the pre-merger costs, we calculate a post-merger marginal cost of 132.36 dollars. This reflects that middle between Hawaiian's relatively lower costs and Alaska's slightly higher ones, accounting for us expecting moderate efficiency gains without assuming perfect and full integration success in the short-term.}
+\textcolor{blue}{Based on the assumption that the merged company's marginal costs would be the average of the pre-merger costs, we calculate a post-merger marginal cost of 142.80 dollars. This reflects that middle between Hawaiian's relatively lower costs and Alaska's slightly higher ones, accounting for us expecting moderate efficiency gains without assuming perfect and full integration success in the short-term.}
 
 
 
@@ -148,7 +148,7 @@ firm_data
 ```
 
 
-\textcolor{blue}{Using our demand elasticity estimate of -1.3318 and the Nash-Bertrand pricing model, we calculated the Lerner Index for all airline data. The average and median Lerner Index are both 0.429, which means that airlines charge prices that are roughly 43 percent higher than their marginal cost.}
+\textcolor{blue}{Using our demand elasticity estimate of -1.98 and the Nash-Bertrand pricing model, we calculated the Lerner Index for all airline data. The average and median Lerner Index are both between about .23 and .30, which means that airlines charge prices that are roughly 23 to 30% percent higher than their marginal cost.}
 
 \textcolor{blue}{This menas that airlines definitely maintain a good degree of market power, even in such a competitive industry and market. Being able to keep decent markups of this magnitude probably comes from factors like route dominance, loyalty programs, and offering product differentiation (flight times, amenities, direct routes, etc).}
 
