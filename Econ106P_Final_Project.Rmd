@@ -38,8 +38,8 @@ library(tidyverse)
 ```
 
 ```{r}
-#logit demand estimates from DC3 for log_price using  fuel price as an instrument = -1.3318
-alpha <- -1.3318
+#logit demand estimates from DC3 for log_price using  fuel price as an instrument = -1.98
+alpha <- -1.98
 
 firm_data$markup <- firm_data$ms_reg / (abs(alpha) * (1 - firm_data$ms_reg))
 firm_data$price <- firm_data$rev / firm_data$passengers
@@ -77,7 +77,7 @@ cat("\nAverage Marginal Cost of All Other Airlines ($):", round(average_mcs_of_o
 
 How do Hawaiian and Alaskan Airlines compare in terms of marginal costs (on average) to the other airline companies? How do Hawaiian and Alaskan compare in terms of marginal costs? Does this give them a rationale to merge, or not?
 
-\textcolor{blue}{Based on the above marginal cost estimates, Alaska Airlines has a higher average marginal cost (159.62 dollars) than Hawaiian Airlines (105.10 dollars), but both are well below the airline industry average of 582.10 dollars across all other carriers. Although we should note that the average of "all other airlines" is probably inflated by skewed data that includes a long tail of smaller, less efificent airline carriers with unusually high costs. If we wanted to focus on only major competitors, the industry average would probably be closer to Hawaiian and Alaska's averages.}
+\textcolor{blue}{Based on the above marginal cost estimates, Alaska Airlines has a higher average marginal cost (170.05 dollars) than Hawaiian Airlines (115.55 dollars), but both are well below the airline industry average of 592.10 dollars across all other carriers. Although we should note that the average of "all other airlines" is probably inflated by skewed data that includes a long tail of smaller, less efificent airline carriers with unusually high costs. If we wanted to focus on only major competitors, the industry average would probably be closer to Hawaiian and Alaska's averages.}
 
 \textcolor{blue}{The difference in costs between Alaska and Hawaiian might be a result of a few different factors including network structure and plane fleet efficiency. But, since they both are much lower than the industry average, it means they are both pretty efficient airlines. This might mean that if they merged, it could have operational synergies especially if Alaska's larger scale and greater routes could help optimize Hawaiian's operations since they're more isolated.}
 
