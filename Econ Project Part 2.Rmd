@@ -1,0 +1,125 @@
+---
+title: "106P Final Project"
+author: "Jack Brun, Michael Dalton"
+date: "2025-05-17"
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 2. Merger analysis 1: HHI Indices
+
+### Start by describing how concentrated markets (defined as routes) are. On how many of the routes is both Alaskan and Hawaiian present in 2024? Compute the pre-merger HHI (Herfindahl index) on each route in 2024. What is the average and median HHI prior to the merger? Next, assume Alaskan and Hawaiian merge in 2024. How high is the post-merger HHI? Compute the change in the HHI for every market (route). Based on the 2010 Merger Guidelines, how many markets are green, yellow, red? (see topic 5 slide 16). What does this imply for the likelihood of further investigation into the merger?
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#clearall
+rm(list=ls()) 
+```
+
+```{r}
+setwd("/Users/jackbrun/Desktop")
+getwd() 
+```
+
+```{r}
+# Load data
+airlinef <-read.csv("airline_data_firmlevel.csv", sep =  "," , header=TRUE)
+airline <-read.csv("airline_data_marketlevel.csv", sep = "," , header=TRUE)
+routes <-read.csv("db1bmarket.csv", sep = "," , header=TRUE)
+```
+
+```{r question 2}
+# How many routes is both Alaskan and Hawaiian present in 2024
+# Filter for Alaska and Hawaiian Airlines routes
+alka_hai_routes <- subset(routes, rpcarrier %in% c("AS", "HA"))
+
+# Count how many unique carriers are present per route
+route_carriers <- aggregate(rpcarrier ~ mkt, data = alka_hai_routes, FUN = function(x) length(unique(x)))
+
+# Keep only routes where both AS and HA fly
+shared_routes <- subset(route_carriers, rpcarrier == 2)
+
+# Show results
+number_shared_routes <- nrow(shared_routes)
+print(paste("Number of routes with both Alaska & Hawaiian airlines:", number_shared_routes))
+```
+
+The Herfindahl-Hirschman Index (HHI) is calculated using the formula:
+$$
+HHI = 10{,}000 \sum_j s_j^2
+$$
+where \( s_j \) is the market share of firm \( j \) in a given market.
+
+```{r}
+# Calculate pre-merger HHI for each route
+hhi_per_route <- aggregate(ms ~ mkt, data = routes, FUN = function(x) 10000 * sum(x^2))
+
+# Define the result column to HHI & view average and median HHI
+colnames(hhi_per_route)[2] <- "HHI"
+average_hhi <- mean(hhi_per_route$HHI)
+median_hhi <- median(hhi_per_route$HHI)
+
+# Print
+print(paste("Average pre-merger HHI:", round(average_hhi, 2)))
+print(paste("Median pre-merger HHI:", round(median_hhi, 2)))
+```
+Hawaiian and Alaska potential merger in 2024:
+```{r}
+# Original data
+df_post <- routes
+
+# Merge data Alaska and Hawaiian together & merge market shares post merger
+df_post$rpcarrier_merged <- ifelse(df_post$rpcarrier %in% c("AS", "HA"), "ASHA", df_post$rpcarrier)
+merged_df <- aggregate(ms ~ mkt + rpcarrier_merged, data = df_post, FUN = sum)
+
+# Post merger HHI
+hhi_post <- aggregate(ms ~ mkt, data = merged_df, FUN = function(x) 10000 * sum(x^2))
+colnames(hhi_post)[2] <- "HHI_post"
+
+# Merge with pre-merger HHI
+hhi_pre <- aggregate(ms ~ mkt, data = routes, FUN = function(x) 10000 * sum(x^2))
+colnames(hhi_pre)[2] <- "HHI_pre"
+
+# Merge the two HHI's & calculate HHI change
+hhi_combined <- merge(hhi_pre, hhi_post, by = "mkt")
+hhi_combined$HHI_change <- hhi_combined$HHI_post - hhi_combined$HHI_pre
+
+# Summary mean and median change in HHI post merger
+mean_change <- mean(hhi_combined$HHI_change)
+median_change <- median(hhi_combined$HHI_change)
+
+# Summary for post-merger HHI
+average_post_hhi <- mean(hhi_post$HHI_post)
+median_post_hhi <- median(hhi_post$HHI_post)
+
+# Results
+print(paste("Average post-merger HHI:", round(average_post_hhi, 2)))
+print(paste("Median post-merger HHI:", round(median_post_hhi, 2)))
+
+# Results
+print(paste("Average change in HHI:", round(mean_change, 2)))
+print(paste("Median change in HHI:", round(median_change, 2)))
+
+# Define each market based on the DOJ guidelines
+hhi_combined$category <- with(hhi_combined, ifelse(HHI_pre < 1500, "Green",
+                                         ifelse(HHI_pre < 2500 & HHI_change < 100, "Green",
+                                         ifelse(HHI_pre < 2500 & HHI_change >= 100, "Yellow",
+                                         ifelse(HHI_pre >= 2500 & HHI_change < 100, "Yellow",
+                                         ifelse(HHI_pre >= 2500 & HHI_change >= 200, "Red", "Yellow"))))))
+
+# Sort routes by green, yellow, and red
+table(hhi_combined$category)
+```
+Based on our analysis of the markets jointly served by Alaska Airlines and Hawaiian Airlines, we identified 299 overlapping routes in 2024. The pre-merger mean HHI is 5,729.12 and the median is 5,000.00 which, based on the DOJ guidelines, indicates a very concentrated market with potential monopoly or oligopoly. To assess potential antitrust implications, we calculated the post-merger mean and median HHI, which were 5,748.76 and 5,011.34, respectively. These results are in line with our change in mean and median HHI which were 19.6 and 0 respectively.  These results fall under the “Small Change in Concentration” section defined by the DOJ to be “Mergers involving an increase in the HHI of less than 100 points are unlikely to have adverse competitive effects and ordinarily require no further analysis.” 
+
+In addition, we categorized the total routes into the DOJ's three HHI concentration tiers: Green (HHI < 1,500): 587 routes, Yellow (HHI 1,500–2,500): 5,568 routes, Red (HHI > 2,500): 62 routes. These results reinforce the conclusion that the merger would not significantly alter the competitive landscape. Despite the high pre-merger concentration, the minimal increase in HHI and the limited number of routes in the red zone suggest that the transaction is unlikely to raise substantial antitrust concerns. As outlined in the 2010 Merger Guidelines, no further competitive analysis appears needed.
+
