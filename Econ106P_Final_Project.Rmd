@@ -38,8 +38,8 @@ library(tidyverse)
 ```
 
 ```{r}
-#logit demand estimates from DC3 for log_price using  fuel price as an instrument = -1.98
-alpha <- -1.98
+#logit demand estimates from DC3 for log_price using  fuel price as an instrument = -1.3318
+alpha <- -1.3318
 
 firm_data$markup <- firm_data$ms_reg / (abs(alpha) * (1 - firm_data$ms_reg))
 firm_data$price <- firm_data$rev / firm_data$passengers
@@ -77,7 +77,7 @@ cat("\nAverage Marginal Cost of All Other Airlines ($):", round(average_mcs_of_o
 
 How do Hawaiian and Alaskan Airlines compare in terms of marginal costs (on average) to the other airline companies? How do Hawaiian and Alaskan compare in terms of marginal costs? Does this give them a rationale to merge, or not?
 
-\textcolor{blue}{Based on the above marginal cost estimates, Alaska Airlines has a higher average marginal cost (170.05 dollars) than Hawaiian Airlines (115.55 dollars), but both are well below the airline industry average of 592.13 dollars across all other carriers. Although we should note that the average of "all other airlines" is probably inflated by skewed data that includes a long tail of smaller, less efificent airline carriers with unusually high costs. If we wanted to focus on only major competitors, the industry average would probably be closer to Hawaiian and Alaska's averages.}
+\textcolor{blue}{Based on the above marginal cost estimates, Alaska Airlines has a higher average marginal cost (159.62 dollars) than Hawaiian Airlines (105.10 dollars), but both are well below the airline industry average of 582.10 dollars across all other carriers. Although we should note that the average of "all other airlines" is probably inflated by skewed data that includes a long tail of smaller, less efificent airline carriers with unusually high costs. If we wanted to focus on only major competitors, the industry average would probably be closer to Hawaiian and Alaska's averages.}
 
 \textcolor{blue}{The difference in costs between Alaska and Hawaiian might be a result of a few different factors including network structure and plane fleet efficiency. But, since they both are much lower than the industry average, it means they are both pretty efficient airlines. This might mean that if they merged, it could have operational synergies especially if Alaska's larger scale and greater routes could help optimize Hawaiian's operations since they're more isolated.}
 
@@ -120,7 +120,7 @@ post_merger_mc <- mean(c(hawaiian_mc$average_mc, alaskan_mc$average_mc))
 cat("Post-merger Marginal Cost ($):", round(post_merger_mc * 1000, 2), "\n")
 ```
 
-\textcolor{blue}{Based on the assumption that the merged company's marginal costs would be the average of the pre-merger costs, we calculate a post-merger marginal cost of 142.80 dollars. This reflects that middle between Hawaiian's relatively lower costs and Alaska's slightly higher ones, accounting for us expecting moderate efficiency gains without assuming perfect and full integration success in the short-term.}
+\textcolor{blue}{Based on the assumption that the merged company's marginal costs would be the average of the pre-merger costs, we calculate a post-merger marginal cost of 132.36 dollars. This reflects that middle between Hawaiian's relatively lower costs and Alaska's slightly higher ones, accounting for us expecting moderate efficiency gains without assuming perfect and full integration success in the short-term.}
 
 
 
@@ -148,7 +148,7 @@ firm_data
 ```
 
 
-\textcolor{blue}{Using our demand elasticity estimate of -1.98 and the Nash-Bertrand pricing model, we calculated the Lerner Index for all airline data. The average and median Lerner Index are both 0.304, which means that airlines charge prices that are roughly 30 percent higher than their marginal cost.}
+\textcolor{blue}{Using our demand elasticity estimate of -1.3318 and the Nash-Bertrand pricing model, we calculated the Lerner Index for all airline data. The average and median Lerner Index are both 0.429, which means that airlines charge prices that are roughly 43 percent higher than their marginal cost.}
 
 \textcolor{blue}{This menas that airlines definitely maintain a good degree of market power, even in such a competitive industry and market. Being able to keep decent markups of this magnitude probably comes from factors like route dominance, loyalty programs, and offering product differentiation (flight times, amenities, direct routes, etc).}
 
@@ -222,11 +222,6 @@ diversion_prices <- diversion %>%
   arrange(desc(uplift_pct_HA)) %>%
   slice_head(n = 10)
 
-cat("\nTop 10 markets by predicted price rise for Hawaiian:\n")
-print(diversion_prices)
-```
-
-```{r}
 # Summaries for Hawaiian’s price rise
 summary_HA <- diversion %>%
   summarise(
@@ -234,10 +229,10 @@ summary_HA <- diversion %>%
     med_upt_dollar = median(uplift_HA,    na.rm = TRUE),
     max_upt_dollar = max(uplift_HA,       na.rm = TRUE),
     min_upt_dollar = min(uplift_HA,       na.rm = TRUE),
-    avg_upt_pct    = mean(uplift_pct_HA,  na.rm = TRUE),
-    med_upt_pct    = median(uplift_pct_HA,na.rm = TRUE),
-    max_upt_pct    = max(uplift_pct_HA,   na.rm = TRUE),
-    min_upt_pct    = min(uplift_pct_HA,   na.rm = TRUE)
+    avg_upt_percent = mean(uplift_pct_HA,  na.rm = TRUE),
+    med_upt_percent = median(uplift_pct_HA,na.rm = TRUE),
+    max_upt_percent = max(uplift_pct_HA,   na.rm = TRUE),
+    min_upt_percent = min(uplift_pct_HA,   na.rm = TRUE)
   )
 print(summary_HA)
 ```
@@ -249,5 +244,22 @@ CE_HA <- diversion %>%
     avg_CE_pct = mean(uplift_pct_HA, na.rm=TRUE)
   )
 print(CE_HA)
+
+# Calculate average diversion ratios
+avg_D_HA_to_AS <- mean(diversion$D_HA_to_AS, na.rm = TRUE)
+avg_D_AS_to_HA <- mean(diversion$D_AS_to_HA, na.rm = TRUE)
+
+# Use the CE formula: CE = D * L / (1 - L)
+ce_ha_to_as <- avg_D_HA_to_AS * (L_AS / (1 - L_AS))
+ce_as_to_ha <- avg_D_AS_to_HA * (L_HA / (1 - L_HA))
+
+# Average CE across the two directions
+avg_ce <- mean(c(ce_ha_to_as, ce_as_to_ha), na.rm = TRUE)
+
+# Output results
+cat("## Compensating Efficiency (HA to AS):", round(ce_ha_to_as, 4), "\n")
+cat("## Compensating Efficiency (AS to HA):", round(ce_as_to_ha, 4), "\n")
+cat("## Average CE (mean of both):", round(avg_ce, 4), "\n")
+
 ```
 
